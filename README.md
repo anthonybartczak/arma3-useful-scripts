@@ -1,0 +1,1 @@
+A compilation of `SQF` scripts that I have developed. Might not be useful without additional context.
