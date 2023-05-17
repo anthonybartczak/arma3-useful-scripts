@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup
 import csv
 
-PRESET_FILENAME='SCP_RO_Modpack_17052023_canadian.html'
-MOD_DESTINATION='CAN_RO'
-CSV_HEADERS = ['mod_id', 'destination', 'description']
+PRESET_FILENAME='' # Filename of the HTML preset file.
+MOD_DESTINATION='' # Destination folder for the mods.
+CSV_HEADERS = ['mod_id', 'destination', 'description'] # CSV headers.
 
 with open(PRESET_FILENAME, 'r') as presetFile:
     contents = presetFile.read()
