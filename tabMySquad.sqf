@@ -1,4 +1,4 @@
-// Version 1.2
+// Version 1.2 (08/06/2023)
 
 _formatListName = {
 	params ["_entity"];
