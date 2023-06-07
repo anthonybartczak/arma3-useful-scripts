@@ -1,3 +1,5 @@
+// Version 1.2
+
 _formatListName = {
 	params ["_entity"];
 	_entityRank = rank _entity;
