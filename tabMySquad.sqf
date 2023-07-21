@@ -1,4 +1,6 @@
-// Version 1.2 (08/06/2023)
+// Version 1.3 (21/07/2023)
+
+params [["_vehicleArray", ["_vehicleArray", []]]];
 
 _formatListName = {
 	params ["_entity"];
@@ -11,7 +13,7 @@ _formatListName = {
 
 _addExtPAA =
 {
-	private["_path", "_array", "_len", "_last4"];
+	private ["_path", "_array", "_len", "_last4"];
 
 	_path = toLower _this;
 
@@ -27,7 +29,7 @@ _addExtPAA =
 
 _addToArray =
 {
-	private["_value", "_array", "_count", "_found", "_x", "_forEachIndex"];
+	private ["_value", "_array", "_count", "_found", "_x", "_forEachIndex"];
 	_value = _this select 0;
 	_array = _this select 1;
 	_count = _this select 2;
@@ -47,6 +49,142 @@ _addToArray =
 };
 
 _text = "";
+
+_getVehicleContent = {
+	private ["_vehicleArray"];
+
+	_vehicleArray = _this select 0;
+	_vehiclesContentArray = [];
+
+	{
+		_vehiclesContentArray pushBack [getItemCargo _x, getWeaponCargo _x, getMagazineCargo _x, getBackpackCargo _x];
+	} forEach _vehicleArray;
+
+	_vehiclesContentArray;
+};
+
+_getVehicleDisplayName = {
+	private ["_vehicle"];
+
+	_displayName = [configOf (_this select 0)] call BIS_fnc_displayName;
+	_displayName;
+};
+
+_formatVehicleEquipment = {
+	private ["_vehicleEquipmentArray", "_vehicleDisplayName", "_vehicle"];
+
+	_itemCargoArray = (_this select 0) select 0;
+	_weaponCargoArray = (_this select 0) select 1;
+	_magazineCargoArray = (_this select 0) select 2;
+	_backpackCargoArray = (_this select 0) select 3;
+
+	_vehicleSeats = fullCrew [(_this select 2), "", true];
+	_seatCount = count _vehicleSeats;
+	_seatString = "";
+
+
+	if (count(_vehicleSeats) != 0) then {
+		{
+			_seatName = _x select 6;
+			if (["$STR", _seatName] call BIS_fnc_inString == true) then {
+				_seatName = localize _seatName;
+			};
+
+			_seatString = _seatString + " - " + _seatName + "<br/>";
+		} forEach _vehicleSeats;
+	};
+
+	_vehicleItemString = "<br/><font color='#ffe838' size=20>Nazwa pojazdu: </font><font size=20>" + (_this select 1) + "</font><br/><br/>";
+	_vehicleItemString = _vehicleItemString + "<font size=12>Siedzenia w pojeździe " + "(" + str _seatCount + ")" + ":<br/>";
+	_vehicleItemString = _vehicleItemString + _seatString + "</font><br/>";
+
+	{
+		_itemArray = _x select 0;
+		_quantityArray = _x select 1;
+
+		if (_forEachIndex == 0 && count (_itemCargoArray select 0) != 0) then {
+			_vehicleItemString = _vehicleItemString + "<font color='#ffe838' size=16>Przedmioty:</font><br/>";
+			{
+				_itemName = getText (configFile >> "CfgWeapons" >> _x >> "DisplayName");
+				_itemPic = getText (configFile >> "CfgWeapons" >> _x >> "picture");
+				if ([".paa", _itemPic] call BIS_fnc_inString == false) then {
+					_itemPic = _itemPic + ".paa";
+				};
+				_itemQuantity = _quantityArray select _forEachIndex;
+				_itemString = str _itemQuantity + " x " + _itemName + " " + "<img image=""" + _itemPic + """ height=16 />" + "<br/>";
+				_vehicleItemString = _vehicleItemString + _itemString;
+			} forEach (_itemCargoArray select 0);
+			_vehicleItemString = _vehicleItemString + "<br/>";
+		};
+
+		if (_forEachIndex == 1 && count (_weaponCargoArray select 0) != 0) then {
+			_vehicleItemString = _vehicleItemString + "<font color='#ffe838' size=16>Broń:</font><br/>";
+			{
+				_itemName = getText (configFile >> "CfgWeapons" >> _x >> "DisplayName");
+				_itemPic = getText (configFile >> "CfgWeapons" >> _x >> "picture");
+				_itemQuantity = _quantityArray select _forEachIndex;
+				_itemString = str _itemQuantity + " x " + _itemName + " " + "<img image=""" + _itemPic + """ height=16 />" + "<br/>";
+				_vehicleItemString = _vehicleItemString + _itemString;
+			} forEach (_weaponCargoArray select 0);
+			_vehicleItemString = _vehicleItemString + "<br/>";
+		};
+
+		if (_forEachIndex == 2 && count (_magazineCargoArray select 0) != 0) then {
+			_vehicleItemString = _vehicleItemString + "<font color='#ffe838' size=16>Amunicja:</font><br/>";
+			{
+				_itemName = getText (configFile >> "CfgMagazines" >> _x >> "DisplayName");
+				_itemPic = getText (configFile >> "CfgMagazines" >> _x >> "picture");
+				_itemQuantity = _quantityArray select _forEachIndex;
+				_itemString = str _itemQuantity + " x " + _itemName + " " + "<img image=""" + _itemPic + """ height=16 />" + "<br/>";
+				_vehicleItemString = _vehicleItemString + _itemString;
+			} forEach (_magazineCargoArray select 0);
+			_vehicleItemString = _vehicleItemString + "<br/>";
+		};
+
+		if (_forEachIndex == 3 && count (_backpackCargoArray select 0) != 0) then {
+			_vehicleItemString = _vehicleItemString + "<font color='#ffe838' size=16>Plecaki:</font><br/>";
+			{
+				_itemName = getText (configFile >> "CfgVehicles" >> _x >> "DisplayName");
+				_itemPic = getText (configFile >> "CfgVehicles" >> _x >> "picture");
+				_itemQuantity = _quantityArray select _forEachIndex;
+				_itemString = str _itemQuantity + " x " + _itemName + " " + "<img image=""" + _itemPic + """ height=16 />" + "<br/>";
+				_vehicleItemString = _vehicleItemString + _itemString;
+			} forEach (_backpackCargoArray select 0);
+			_vehicleItemString = _vehicleItemString + "<br/>";
+		};
+
+	} forEach (_this select 0);
+
+	_vehicleItemString;
+
+};
+
+_getVehiclePicturePath = {
+	params ["_vehicle"];
+
+	_veh = _this select 0;
+	_pic = getText (configfile >> "CfgVehicles" >> typeOf _veh >> "editorPreview");
+	_pic;
+};
+
+_buildVehiclePreviewTab = {
+	params ["_vehiclesArray"];
+
+	_vehiclesArray = _this select 0;
+	_vehiclePreviewString = "";
+
+	{
+		_displayName = [_x] call _getVehicleDisplayName;
+		_vehiclePicturePath = [_x] call _getVehiclePicturePath;
+
+		_vehiclePreviewString = _vehiclePreviewString + "<font face='PuristaMedium' color='#ffe838' size=18>" + _displayName + "</font><br/>";
+		_vehiclePreviewString = _vehiclePreviewString + "<img image=""" + _vehiclePicturePath + """ height=150 /><br/><br/>";
+		_vehiclePreviewString = _vehiclePreviewString + "<br/>";
+	} forEach _vehiclesArray;
+
+	_vehiclePreviewString;
+};
+
 _addGroupUnitToDiary =
 {
 	_unit = _this select 0;
@@ -286,11 +424,36 @@ if !(player diarySubjectExists "squad") then {
 	player createDiarySubject ["squad", "Wyposażenie"];
 };
 
+if (count (_this select 0) != 0) then {
+
+	if !(player diarySubjectExists "vehicles") then {
+		player createDiarySubject ["vehicles", "Pojazdy"];
+	};
+
+	_vehiclesContent = [_this select 0] call _getVehicleContent;
+
+	{
+		_displayName = [_x] call _getVehicleDisplayName;
+		_text = [_vehiclesContent select _forEachIndex, _displayName, _x] call _formatVehicleEquipment;
+		_text = "<font face='PuristaMedium'>" + _text + "</face>";
+		player createDiaryRecord ["vehicles",["Pojazd " + _displayName, (_text regexReplace ["&", "&amp;"])]];
+		_text = "";
+	} forEach (_this select 0);
+
+	_vehiclePreviewText = [_this select 0] call _buildVehiclePreviewTab;
+	player createDiaryRecord ["vehicles",["Podgląd pojazdów", (_vehiclePreviewText regexReplace ["&", "&amp;"])]];
+
+};
+
+
 _text = "";
 {[_x, _forEachIndex + 1] call _addUnitToDiary;} forEach units group player;
 
 _text = "";
 {[_x, _forEachIndex + 1] call _addGroupUnitToDiary;} forEach units group player;
+
+
+
 _name = toArray(str (group player));
 _shorten = [];
 for "_i" from 2 to ((count _name) - 1) do
